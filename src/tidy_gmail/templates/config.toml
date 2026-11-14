@@ -1,0 +1,24 @@
+[cleanup]
+dry_run = true
+batch_size = 100
+minimum_age_days = 730
+# WHY: Explicit trash decisions or data/senders_always_delete.csv provide approval.
+# REQ: Keep/review conflicts and all message protections still block cleanup.
+require_approved_sender = true
+
+[protection]
+# REQ: Permanent message-level protection; older configurations default to true.
+protect_receipts = true
+protect_starred = true
+protect_important = true
+protect_attachments = true
+protect_sent_by_me = true
+# WHY: Protect records and correspondence even for approved senders.
+subject_contains = ["charity", "nonprofit", "contribution", "tax document", "legal", "research"]
+# Gmail label IDs, such as Label_123; names are not IDs.
+label_ids = []
+# Include your mailbox address and aliases.
+own_addresses = []
+
+[categories]
+candidates = ["CATEGORY_PROMOTIONS"]

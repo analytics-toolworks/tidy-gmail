@@ -1,0 +1,53 @@
+# ============================================================
+# CITATION.cff (How to cite this project)
+# ============================================================
+# REQ: Professional open projects SHOULD include this file.
+# USAGE: See https://citation-file-format.github.io/ for details.
+# check with:
+# uvx cffconvert --validate
+
+cff-version: "1.2.0"
+message: "If you use this project, please cite it using the information in CITATION.cff."
+type: software
+
+title: "tidy-gmail"
+version: "0.1.0"
+date-released: "2026-11-14"
+
+authors:
+  - family-names: Case
+    given-names: Denise M.
+    orcid: "https://orcid.org/0000-0001-6165-7389"
+    affiliation: "Northwest Missouri State University, USA"
+
+repository-code: "https://github.com/analytics-toolworks/tidy-gmail"
+url: "https://github.com/analytics-toolworks/tidy-gmail"
+license: MIT
+
+abstract: |
+  tidy-gmail is an open-source, local-first Python command-line
+  utility for inspecting and cleaning Gmail accounts using
+  user-maintained configuration and explicit cleanup rules.
+
+  The project separates mailbox inspection, classification,
+  cleanup decisions, and execution. It is designed to preserve
+  personal correspondence, financial records, charitable
+  contribution receipts, and other potentially valuable messages
+  while identifying disposable email.
+
+  Configuration, credentials, audit records, and reports remain
+  under the user's control. The intended interface supports
+  inspection, dry-run evaluation, controlled movement to Gmail
+  Trash, and restoration.
+
+keywords:
+  - gmail
+  - email
+  - email-cleanup
+  - email-organization
+  - automation
+  - privacy
+  - python
+  - command-line-tool
+  - uvx
+  - open-source
