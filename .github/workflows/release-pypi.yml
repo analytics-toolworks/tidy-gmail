@@ -6,7 +6,8 @@
 # WHY: Publish a tagged Python package release to PyPI.
 # REQ: Trigger ONLY on version tags like v1.2.3.
 # REQ: PyPI project must be configured for Trusted Publishing (OIDC).
-# REQ: pre-release.yml must build, validate, and upload the dist artifact.
+# REQ: pre-release.yml must build, validate, and upload
+#      the dist and release-sboms artifacts.
 #
 # OBS: Two jobs, deliberately separated:
 #      1) pre-release - validates and builds the dist once.
@@ -38,17 +39,19 @@ jobs:
   # === PRIOR: Validate and build. Produces the `dist` artifact. ===
   # ============================================================
   pre-release:
-    # Use ./.github/workflows/pre-release.yml for the pre-release job.
-    uses: ./.github/workflows/pre-release.yml
+    # Use $/.github/workflows/pre-release.yml for the pre-release job.
+    # OBS: $/ (GitHub, July 2026) resolves to this repository at the running commit.
+    uses: $/.github/workflows/pre-release.yml
 
   # ============================================================
-  # === HERE: Publish the exact artifact that pre-release built and checked. ===
+  # === PUBLISH TO PYPI: Upload validated distributions only. ===
   # ============================================================
-  publish:
+  publish-pypi:
     needs: pre-release    # WHY: Never publish if pre-release checks fail.
     runs-on: ubuntu-latest
     timeout-minutes: 30   # WHY: Prevent hanging jobs. If over, it is likely stuck.
     environment: pypi     # WHY: PyPI Trusted Publishing environment.
+
     permissions:
       contents: write     # WHY: Create the GitHub Release.
       id-token: write     # WHY: PyPI Trusted Publishing (OIDC).
@@ -65,7 +68,7 @@ jobs:
         # WHY: Provides git/repo context for the release step.
         # OBS: No deep history needed here; the artifact is downloaded, not rebuilt.
 
-      - name: A2) Download the built distribution
+      - name: A2) Download the built Python distribution
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         # OBS: Major must match the upload-artifact major in pre-release.yml.
         with:
@@ -94,6 +97,14 @@ jobs:
         env:
           STEPS_VER_OUTPUTS_PLAIN: ${{ steps.ver.outputs.plain }}
 
+      - name: A5) Download the release SBOMs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        # WHY: SBOMs are kept in sbom/, separate from Python distributions.
+        # OBS: Major must match the upload-artifact major in pre-release.yml.
+        with:
+          name: release-sboms
+          path: sbom
+
       # ============================================================
       # === B) CREATE RELEASE AND PUBLISH TO PYPI ===
       # ============================================================
@@ -107,8 +118,8 @@ jobs:
           files: |
             dist/*.whl
             dist/*.tar.gz
-            dist/sbom.spdx.json
-            dist/sbom.cdx.json
+            sbom/sbom.spdx.json
+            sbom/sbom.cdx.json
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
@@ -117,4 +128,5 @@ jobs:
       - name: B2) Publish to PyPI with Trusted Publishing
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
         # OBS: pypa/gh-action-pypi-publish only uploads .whl and .tar.gz files
-        # from dist/ and safely ignores .json SBOM files.
+        # from dist/.
+        # SBOMs are in sbom/ and are attached to the GitHub Release only.

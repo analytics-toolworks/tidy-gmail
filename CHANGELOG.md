@@ -191,6 +191,8 @@ git tag -d vX.Y.Z
 git push origin :refs/tags/vX.Y.Z
 ```
 
+And delete the associated GitHub Release if available.
+
 ## Links
 
 [Unreleased]: https://github.com/analytics-toolworks/tidy-gmail/compare/v0.2.0...HEAD
