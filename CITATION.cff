@@ -11,8 +11,8 @@ message: "If you use this project, please cite it using the information in CITAT
 type: software
 
 title: "tidy-gmail"
-version: "0.1.0"
-date-released: "2026-11-14"
+version: "0.2.0"
+date-released: "2026-11-21"
 
 authors:
   - family-names: Case

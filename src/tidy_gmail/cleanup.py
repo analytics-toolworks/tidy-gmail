@@ -1,7 +1,5 @@
 """Execute explicitly confirmed Gmail cleanup operations."""
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +13,7 @@ def confirm(action: str, count: int) -> bool:
     """Require an explicit confirmation for a modifying batch."""
     required = f"{action} {count}"
 
-    print(f"Type {required!r} to authorize this batch.")
+    print(f"Type {required!r} to authorize this batch. It may take a while.")
 
     return input("> ").strip() == required
 
@@ -42,11 +40,9 @@ def trash(
         decisions,
     )
 
-    proposal = all_candidates[:limit]
+    print(f"Saved candidates: {len(all_candidates)}. Trash batch limit: {limit}.")
 
-    print(f"Proposed Trash batch: {len(proposal)} of {len(all_candidates)} candidates")
-
-    if not proposal:
+    if not all_candidates:
         return
 
     if settings.dry_run or not execute:
@@ -66,13 +62,17 @@ def trash(
 
     approved: list[dict[str, str]] = []
 
-    for stored in proposal:
+    for stored in all_candidates:
         if stored["id"] not in current_ids:
             continue
 
         current = checked_metadata(api, stored, settings, protected, decisions)
-        if current is not None:
-            approved.append(current)
+        if current is None:
+            continue
+
+        approved.append(current)
+        if len(approved) == limit:
+            break
 
     print(f"Still eligible after live Gmail recheck: {len(approved)}")
 

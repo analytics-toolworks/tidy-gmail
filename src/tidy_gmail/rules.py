@@ -1,7 +1,5 @@
 """Conservative, data-driven selection rules. No network operations."""
 
-from __future__ import annotations
-
 import csv
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta

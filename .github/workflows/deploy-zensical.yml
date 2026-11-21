@@ -1,7 +1,7 @@
 # ============================================================
 # .github/workflows/deploy-zensical.yml (ALL-PY-REPOS)
 # ============================================================
-# Updated: 2026-10-24
+# Updated: 2026-11-19
 #
 # WHAT: A GitHub Actions workflow that automatically publishes project documentation.
 #       GitHub Actions is GitHub's built-in project automation service.
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       # ============================================================
-      # A) ASSEMBLE: Checkout code and set up environment
+      # === A) ASSEMBLE: Checkout code and set up environment ===
       # ============================================================
 
       - name: A1) Checkout repository code
@@ -87,7 +87,7 @@ jobs:
         # OBS: Must run before the build step so base URL is available if needed.
 
       - name: A3) Install uv (with caching and uv.lock awareness)
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -112,7 +112,7 @@ jobs:
         # WHY: Version output makes deployment logs easier to debug when tools change.
 
       # ============================================================
-      # D) DEPLOY: Build and publish docs
+      # === D) DEPLOY: Build and publish docs ===
       # ============================================================
       - name: D1) Build docs with Zensical
         run: |

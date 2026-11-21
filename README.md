@@ -64,19 +64,14 @@ Users should back up important email before bulk cleanup.
 
 ## Quick Start
 
-These instructions are for people using the published application.
-You do not need Git or a source checkout.
-[Install uv](https://docs.astral.sh/uv/getting-started/installation/),
-then initialize and validate your local workspace:
+To use the published application,
+[install uv](https://docs.astral.sh/uv/getting-started/installation/),
+then initialize and validate a local tidy-gmail workspace:
 
 ```shell
 uvx tidy-gmail init
 uvx tidy-gmail doctor
 ```
-
-`uvx` runs the published package, so unpublished changes in a local checkout
-are not included. If you are developing or testing this repository,
-follow [Development](docs/development.md) and use `uv run tidy-gmail`.
 
 Initialization creates missing items and preserves existing files.
 A successful `doctor` checks local configuration only;
@@ -110,8 +105,9 @@ own addresses, and subject terms.
 
 Create your own Google Cloud desktop OAuth client with Gmail API enabled.
 Save the downloaded client JSON as `.local/credentials.json`
-inside your workspace. See [OAuth setup](docs/oauth.md).
-Do not create `token.json` yourself; authorization creates it.
+inside your workspace.
+See [OAuth setup](docs/oauth.md).
+Do not create `token.json`; authorization creates it automatically.
 
 ```shell
 uvx tidy-gmail scan
@@ -338,11 +334,14 @@ newsletter@example.org,disposable newsletter
 ```
 
 Membership satisfies `require_approved_sender = true` without an individual
-`trash` decision. It does not authorize immediate deletion:
-messages must be older than `cleanup.minimum_age_days` and pass every
-existing protection. Recent messages are retained. Missing or invalid
-dates are skipped, including during the final check before Trash.
-Messages exactly at the age boundary are conservatively retained.
+`trash` decision.
+It does not authorize immediate deletion:
+messages must be older than `cleanup.minimum_age_days` and
+pass every existing protection.
+Recent messages are retained.
+Missing or invalid dates are skipped,
+including during the final check before Trash.
+Messages exactly at the age boundary are retained.
 
 Protected senders, receipts and order confirmations, protected labels,
 starred and important messages, attachment exclusions, sent-by-me
@@ -351,15 +350,18 @@ Explicit `keep` or `review` decisions block permanent approval as conflicts.
 Resolve conflicts yourself; the application never rewrites those decisions.
 
 A missing permanent list means no permanent approvals; malformed existing
-files stop validation. Duplicate normalized addresses are rejected.
+files stop validation.
+Duplicate normalized addresses are rejected.
 The list is indexed once per command for fast membership checks.
-Scanning never adds senders to this list. `init` creates a header-only
-file if missing and preserves existing contents.
+Scanning never adds senders to this list.
+`init` creates a header-only file if missing
+and preserves existing contents.
 Existing private files are not migrated or rewritten by an upgrade.
 
 Reports distinguish `[protected: reason]`, `[permanently approved; eligible: N]`,
 `[individually approved; eligible: N]`, and `[undecided]`.
-Receipt counts remain separate. Sender summaries retain individual decisions
+Receipt counts remain separate.
+Sender summaries retain individual decisions
 and add approval source and reason columns.
 `output/sender_conflicts.csv` lists every permanent approval conflict,
 including senders outside the scanned inventory.
@@ -374,14 +376,16 @@ Gmail search, metadata retrieval, and Trash remain separate API operations.
 ### Protected Sender Reports
 
 The selected workspace's `data/senders_protected.csv` controls sender
-protection. Addresses are matched after trimming whitespace and ignoring case.
+protection.
+Addresses are matched after trimming whitespace and ignoring case.
 Protection overrides any `trash` sender decision and is checked again
 immediately before each Trash request, independently of receipt detection.
 Rules are loaded when the command starts; restart the command after editing them.
 
 Reports display `[protected: reason]`, or `[protected]` for a blank reason,
 in preference to a sender decision. Unprotected senders with eligible messages
-show an approval source and eligible count; senders without a decision show `[undecided]`.
+show an approval source and eligible count;
+senders without a decision show `[undecided]`.
 Undecided messages are not eligible for cleanup.
 The sender summary preserves the saved decision and adds `protection_reason`.
 The protected-message report also includes protected senders.
@@ -400,7 +404,8 @@ protect_receipts = true
 ```
 
 This setting defaults to `true` in older configurations.
-Permanent protection cannot be disabled: `false` is a configuration error.
+Permanent protection cannot be disabled:
+`false` is a configuration error.
 Existing sender, label, starred, important, attachment, and other
 protections continue to apply.
 
@@ -445,32 +450,67 @@ The user should not rely on its retention period as the only backup.
 Google OAuth credentials and authorization tokens are
 stored locally and not be committed to Git.
 
-## Development
-
-The project uses:
-
-- Python with a `src/` package layout.
-- `uv` for dependency management.
-- `uvx` for the published command-line application.
-- Ruff for formatting and linting.
-- ty for static type checking.
-- pytest for automated tests.
-- Zensical for documentation.
-
-Tests must not access or modify a real Gmail account.
-Gmail operations should be tested through controlled
-fixtures and simulated API responses.
-
 ## Scope
 
 This application is limited to Gmail.
 The user is responsible for their own mailbox,
 configuration, credentials, and cleanup decisions.
 
+## Example Commands with Alternate Location
+
+Edit data/config.toml.
+
+```shell
+# mild
+uvx tidy-gmail --workspace "C:\Repos\analytics-toolworks\tidy-gmail" scan --limit 100
+uvx tidy-gmail --workspace "C:\Repos\analytics-toolworks\tidy-gmail" candidates
+uvx tidy-gmail --workspace "C:\Repos\analytics-toolworks\tidy-gmail" trash --limit 10 --execute
+
+# courageous
+uvx tidy-gmail --workspace "C:\Repos\analytics-toolworks\tidy-gmail" scan --limit 1000
+uvx tidy-gmail --workspace "C:\Repos\analytics-toolworks\tidy-gmail" candidates
+uvx tidy-gmail --workspace "C:\Repos\analytics-toolworks\tidy-gmail" trash --execute
+
+# or
+uvx tidy-gmail --workspace . scan --limit 1000
+uvx tidy-gmail --workspace . candidates
+uvx tidy-gmail --workspace . trash --execute
+```
+
+After running `candidates`,
+open `output/candidates.csv`
+to review the saved candidates.
+The command prints the full path.
+
+Each `trash --execute` run skips messages already moved to Trash and
+selects up to one batch of currently eligible messages.
+Review the live count and type the confirmation shown.
+To process another batch from the same scan,
+run the command again.
+
+The saved candidate count will remain constant
+while processing those messages.
+The live count indicates how many messages
+would be moved this time.
+
+## Work In Gmail to Delete All Messages from a Sender
+
+To delete all email from a sender:
+
+1. Open Gmail.
+2. Copy the sender email from output/candidates.csv.
+3. Paste it into the gmail search at the top.
+4. Check the box at the top to "Select all".
+5. Then, click "Select all conversations that match this search".
+6. Then, click the trash can icon.
+
+![Gmail Mass Delete](./docs/images/gmail_mass_delete.png)
+
 ## Contributing
 
 See [Development](docs/development.md) for checkout setup, local commands,
-privacy checks, and validation. Release instructions are in
+privacy checks, and validation.
+Release instructions are in
 [CHANGELOG.md](CHANGELOG.md#release-procedure-required).
 
 ## Annotations
@@ -488,3 +528,8 @@ privacy checks, and validation. Release instructions are in
 ## License
 
 [MIT](https://github.com/analytics-toolworks/tidy-gmail/blob/main/LICENSE)
+
+## Releases
+
+- [GitHub Releases](https://github.com) (includes `.whl`, `.tar.gz`, `sbom.spdx.json`, and `sbom.cdx.json`)
+- [PyPI](https://pypi.org)

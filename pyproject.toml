@@ -1,97 +1,16 @@
 # ============================================================
 # pyproject.toml
 # ============================================================
-
-# ============================================================
-# === PROJECT IDENTITY ===
-# ============================================================
-
-[project]
-name = "tidy-gmail"
-description = "Tidy Gmail."
-readme = "README.md"
-requires-python = ">=3.15"
-license-files = ["LICENSE"]
-dynamic = ["version"]       # WHY: Version is computed from git tags at build time.
-
-authors = [{ name = "Denise Case" }]
-keywords = [
-    "gmail",
-    "email",
-    "email-cleanup",
-    "email-organization",
-    "automation",
-    "privacy",
-    "command-line",
-    "uvx",
-]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Environment :: Console",
-    "Intended Audience :: End Users/Desktop",
-    "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.15",
-    "Topic :: Communications :: Email",
-    "Topic :: Utilities",
-    "Typing :: Typed",
-]
-
-dependencies = [
-    "google-api-python-client", # WHY: Access Gmail messages, labels, and Trash operations.
-    "google-auth-httplib2",     # WHY: Authenticated HTTP transport for Google APIs.
-    "google-auth-oauthlib",     # WHY: Desktop OAuth authorization and token management.
-]
-
-# Python 3.15 includes everything else:
-# - tomllib - reads TOML configuration.
-# - csv - reads and writes sender decisions and reports.
-# - sqlite3 - maintains persistent state.
-# - pathlib - handles Windows/macOS paths.
-# - argparse - supports CLI subcommands.
-
-[project.scripts]
-tidy-gmail = "tidy_gmail.cli:main"
-# Enables:
-# uvx tidy-gmail scan
-# uvx tidy-gmail report
-# uvx tidy-gmail trash
-
-[project.urls]
-Changelog = "https://github.com/analytics-toolworks/tidy-gmail/blob/main/CHANGELOG.md"
-Documentation = "https://analytics-toolworks.github.io/tidy-gmail/"
-Homepage = "https://github.com/analytics-toolworks/tidy-gmail"
-Issues = "https://github.com/analytics-toolworks/tidy-gmail/issues"
-Repository = "https://github.com/analytics-toolworks/tidy-gmail"
-
-# ============================================================
-# === DEVELOPMENT DEPENDENCIES ===
-# ============================================================
-
-[dependency-groups]
-# WHY: Development dependencies support maintaining and validating the project
-# but are not runtime dependencies or optional features of the published package.
-
-dev = [
-    # REQ.DEV.DEPS: External packages used for linting, testing, type checking, etc.
-    "pytest",     # WHY: Test framework for unit and integration tests.
-    "pytest-cov", # WHY: Test coverage reporting for quality metrics and CI gating.
-    "ruff",       # WHY: Fast linting and formatting for Python code.
-    "ty",         # WHY: Type checking for static analysis and type safety.
-]
-docs = [
-    "mkdocstrings[python]", # WHY: Auto-generate API docs from docstrings.
-    # REQ.DOCS.DEPS: External packages used to generate project documentation.
-    "zensical",
-]
+# Updated 2026-11-19 to follow Python packaging best practices.
+# See: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+# Validate:
+# uvx --with packaging validate-pyproject pyproject.toml
 
 # ============================================================
 # === BUILD SYSTEM ===
 # ============================================================
-#
-# REQ.PROJECT: A build system MUST be declared for package discovery and publishing.
-# REQ.STRUCTURE: All importable code MUST live under src/.
+# REQ: A build system MUST be declared for package discovery and publishing.
+# REQ: All importable code MUST live under src/.
 # WHY src/ layout: Prevents accidental imports from the repo root and ensures
 # consistent behavior across IDEs, tests, CI, and PyPI.
 
@@ -100,38 +19,129 @@ requires = ["hatch-vcs", "hatchling"]
 build-backend = "hatchling.build"
 
 # ============================================================
-# === TOOL: HATCH ===
+# === PROJECT ===
 # ============================================================
+# Standard [project] field order:
+# 1. Identity:     name, version (or dynamic), description, readme
+# 2. Attribution:  requires-python, license-files, authors
+# 3. Discovery:    keywords, classifiers
+# 4. Runtime:      dependencies, optional-dependencies
+# 5. Links:        urls.*
+# 6. Entry points: scripts.*
 
-[tool.hatch.build.hooks.vcs]
-# WHY: Writes computed version into src/*/_version.py at build time.
-version-file = "src/tidy_gmail/_version.py"
+[project]
 
-[tool.hatch.build.targets.sdist]
-include = [
-    "src/tidy_gmail",
-    "CHANGELOG.md",
-    "CITATION.cff",
-    "LICENSE",
-    "pyproject.toml",
-    "README.md",
+# === 1. PROJECT IDENTITY ===
+name = "tidy-gmail"
+dynamic = ["version"]  # WHY: Version is computed from git tags at build time.
+description = "Tidy Gmail."
+readme = "README.md"
+
+# === 2. PROJECT ATTRIBUTION ===
+requires-python = ">=3.15"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Denise Case" }]
+
+# === 3. PROJECT DISCOVERY ===
+keywords = [
+  "automation",
+  "command-line",
+  "email",
+  "email-cleanup",
+  "email-organization",
+  "gmail",
+  "privacy",
+  "uvx",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: End Users/Desktop",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.15",
+  "Topic :: Communications :: Email",
+  "Topic :: Utilities",
+  "Typing :: Typed",
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/tidy_gmail"]
+# === 4. PROJECT RUNTIME ===
+dependencies = [
+  "google-api-python-client",  # WHY: Access Gmail messages, labels, and Trash operations.
+  "google-auth-httplib2",      # WHY: Authenticated HTTP transport for Google APIs.
+  "google-auth-oauthlib",      # WHY: Desktop OAuth authorization and token management.
+]
+# Python 3.15 includes everything else:
+# - tomllib - reads TOML configuration.
+# - csv - reads and writes sender decisions and reports.
+# - sqlite3 - maintains persistent state.
+# - pathlib - handles Windows/macOS paths.
+# - argparse - supports CLI subcommands.
 
-[tool.hatch.version]
-# Used when no git tags are present. Keep in sync with CITATION.cff.
-fallback-version = "0.1.0"
+# === 5. PROJECT URLS ===
+urls.Changelog = "https://github.com/analytics-toolworks/tidy-gmail/blob/main/CHANGELOG.md"
+urls.Documentation = "https://analytics-toolworks.github.io/tidy-gmail/"
+urls.Homepage = "https://github.com/analytics-toolworks/tidy-gmail"
+urls.Issues = "https://github.com/analytics-toolworks/tidy-gmail/issues"
+urls.Repository = "https://github.com/analytics-toolworks/tidy-gmail"
+
+# === 6. PROJECT SCRIPTS ===
+# Enables running the CLI with uvx, for example:
+# uvx tidy-gmail scan
+# uvx tidy-gmail report
+# uvx tidy-gmail trash
+scripts.tidy-gmail = "tidy_gmail.cli:main"
+
+# ============================================================
+# === DEPENDENCY GROUPS ===
+# ============================================================
+
+[dependency-groups]
+# WHY: Development dependencies support maintaining and validating the project
+# but are not runtime dependencies or optional features of the published package.
+dev = [
+  # REQ.DEV.DEPS: External packages used for linting, testing, type checking, etc.
+  "pytest",      # WHY: Test framework for unit and integration tests.
+  "pytest-cov",  # WHY: Test coverage reporting for quality metrics and CI gating.
+  "ruff",        # WHY: Fast linting and formatting for Python code.
+  "ty",          # WHY: Type checking for static analysis and type safety.
+]
+docs = [
+  # REQ.DOCS.DEPS: External packages used to generate project documentation.
+  "mkdocstrings[python]",  # WHY: Auto-generate API docs from docstrings.
+  "zensical",
+]
+
+# ============================================================
+# === TOOLS ===
+# ============================================================
+
+# === TOOL: HATCH BUILD TOOL ===
+#
+[tool.hatch]
 # WHY: Version is derived from git tags at build time.
-source = "vcs"
+version.source = "vcs"
+# Used when no git tags are present. Keep in sync with CITATION.cff.
+version.fallback-version = "0.2.0"
 # WHY: Allow hatch-vcs to find the Git root from isolated build contexts.
-search_parent_directories = true
-tag-pattern = "^(?:v)?(?P<version>\\d+\\.\\d+\\.\\d+)$"
+version.search_parent_directories = true
+version.tag-pattern = "^(?:v)?(?P<version>\\d+\\.\\d+\\.\\d+)$"
 
-# ============================================================
+# WHY: Writes computed version into src/*/_version.py at build time.
+build.hooks.vcs.version-file = "src/tidy_gmail/_version.py"
+build.targets.wheel.packages = ["src/tidy_gmail"]
+build.targets.sdist.include = [
+  "src/tidy_gmail",
+  "CHANGELOG.md",
+  "CITATION.cff",
+  "LICENSE",
+  "pyproject.toml",
+  "README.md",
+]
+
 # === TOOL: UV ===
-# ============================================================
 
 [tool.uv]
 # WHY: Install all dependency groups defined by this repository by default.

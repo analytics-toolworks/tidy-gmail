@@ -1,9 +1,11 @@
 # ============================================================
 # .github/workflows/pre-release.yml (ALL-PY-SRC-PYPI-REPOS)
 # ============================================================
-# Updated: 2026-10-24
+# Updated: 2026-11-19
 #
-# WHY: Validate tagged Python package artifacts before release.
+# WHY: Validate tagged Python package artifacts
+#      and generate release SBOMs
+#      (sbom.spdx.json and sbom.cdx.json) before publishing.
 # REQ: Reusable by PyPI package repositories.
 # OBS: Generic only; repo-specific artifact checks belong in separate workflows.
 
@@ -28,7 +30,7 @@ jobs:
 
     steps:
       # ============================================================
-      # A) ASSEMBLE: Checkout code and set up environment
+      # === A) ASSEMBLE: Checkout code and set up environment ===
       # ============================================================
 
       - name: A1) Checkout repository with full history and tags
@@ -40,7 +42,7 @@ jobs:
           persist-credentials: false
 
       - name: A2) Install uv (with caching)
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: true
           # WHY: Cache uv-managed artifacts for faster subsequent runs.
@@ -58,8 +60,18 @@ jobs:
           uv run python --version
         # WHY: Version output makes release logs easier to debug.
 
+      - name: A5) Audit locked Python dependencies before release
+        run: uv audit --frozen
+        # WHAT: Audit the tagged project's locked dependencies, including
+        #       extras and dependency groups, for known advisories.
+        # WHY: Require a successful audit before building and publishing.
+        # OBS: --frozen reads the committed uv.lock without updating it.
+        # OBS: An advisory finding or an unavailable audit service can
+        #      stop the release. Review this step's output for the cause.
+        # LOCAL: Run uv audit --frozen from the repository root.
+
       # ============================================================
-      # B) BASELINE CHECKS: Build while git is pristine
+      # === B) BASELINE CHECKS: Build while git is pristine ===
       # ============================================================
 
       - name: B1) Extract plain version from tag (no leading 'v')
@@ -115,9 +127,31 @@ jobs:
         run: uvx twine check dist/*
         # WHY: Confirm wheel and sdist metadata are valid before publishing.
 
-      - name: B7) Upload built distribution artifact
+      - name: B7) Generate release SBOMs (SPDX + CycloneDX)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/sbom.spdx.json
+          upload-artifact: false
+        # WHY: Bundle permanent SPDX SBOM alongside wheel and sdist in dist/.
+
+      - name: B8) Generate CycloneDX release SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: dist/sbom.cdx.json
+          upload-artifact: false
+        # WHY: Bundle permanent CycloneDX SBOM alongside wheel and sdist in dist/.
+
+      - name: B9) Upload built distribution artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dist
-          path: dist/*
-        # WHY: Publish the exact validated artifacts to the release workflow.
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/sbom.spdx.json
+            dist/sbom.cdx.json
+        # WHY: Publish the exact validated artifacts and SBOMs to the release workflow.

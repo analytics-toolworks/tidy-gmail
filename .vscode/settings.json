@@ -45,7 +45,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[toml]": {
-    "editor.defaultFormatter": "tamasfe.even-better-toml"
+    "editor.defaultFormatter": "be5invis.toml"
   },
   "[yaml]": {
     "editor.defaultFormatter": "redhat.vscode-yaml"

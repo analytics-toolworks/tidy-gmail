@@ -1,7 +1,5 @@
 """Local, private CSV and workspace storage."""
 
-from __future__ import annotations
-
 from collections.abc import Iterable
 import csv
 from datetime import UTC, datetime

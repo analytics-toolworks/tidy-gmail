@@ -1,7 +1,5 @@
 """Recover Gmail messages using durable audit events."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from . import gmail_client as gmail

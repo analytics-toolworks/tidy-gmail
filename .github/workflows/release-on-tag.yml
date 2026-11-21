@@ -1,7 +1,7 @@
 # ============================================================
 # .github/workflows/release-on-tag.yml (ALL-REPOS)
 # ============================================================
-# Updated: 2026-11-03
+# Updated: 2026-11-19
 #
 # WHAT: Publish a GitHub Release for version tags vX.Y.0.
 #
@@ -131,7 +131,22 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: A1) Classify release tag
+
+      # ============================================================
+      # === A) ASSEMBLE: Checkout code and set up environment ===
+      # ============================================================
+
+      - name: A1) Checkout repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+        # WHY: Required so all subsequent steps can access repo files.
+
+      # ============================================================
+      # === B) CLASSIFY AND VALIDATE RELEASE TAG ===
+      # ============================================================
+
+      - name: B1) Classify release tag
         id: classify
         env:
           TAG: ${{ github.ref_name }}
@@ -151,9 +166,9 @@ jobs:
             echo "Patch tag $TAG: no GitHub Release."
           fi
 
-      - name: A2) Check for existing release
+      - name: B2) Check for existing release
         id: existing
-        if: steps.classify.outputs.publish == 'true'
+        if: steps.classify.outputs.publish == 'true' && hashFiles('.github/workflows/release-pypi.yml') == ''
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -167,8 +182,8 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: A3) Publish GitHub Release
-        if: steps.classify.outputs.publish == 'true' && steps.existing.outputs.exists == 'false'
+      - name: B3) Publish GitHub Release
+        if: steps.classify.outputs.publish == 'true' && steps.existing.outputs.exists == 'false' && hashFiles('.github/workflows/release-pypi.yml') == ''
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

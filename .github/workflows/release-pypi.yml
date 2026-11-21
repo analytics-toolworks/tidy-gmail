@@ -1,7 +1,7 @@
 # ============================================================
 # .github/workflows/release-pypi.yml (ALL-PY-SRC-PYPI-REPOS)
 # ============================================================
-# Updated: 2026-11-13
+# Updated: 2026-11-19
 #
 # WHY: Publish a tagged Python package release to PyPI.
 # REQ: Trigger ONLY on version tags like v1.2.3.
@@ -34,16 +34,16 @@ concurrency:
 
 jobs:
 
-  # ------------------------------------------------------------
-  # 1) Validate and build once. Produces the `dist` artifact.
-  # ------------------------------------------------------------
+  # ============================================================
+  # === PRIOR: Validate and build. Produces the `dist` artifact. ===
+  # ============================================================
   pre-release:
     # Use ./.github/workflows/pre-release.yml for the pre-release job.
     uses: ./.github/workflows/pre-release.yml
 
-  # ------------------------------------------------------------
-  # 2) Publish the exact artifact that pre-release built and checked.
-  # ------------------------------------------------------------
+  # ============================================================
+  # === HERE: Publish the exact artifact that pre-release built and checked. ===
+  # ============================================================
   publish:
     needs: pre-release    # WHY: Never publish if pre-release checks fail.
     runs-on: ubuntu-latest
@@ -54,6 +54,10 @@ jobs:
       id-token: write     # WHY: PyPI Trusted Publishing (OIDC).
 
     steps:
+
+      # ============================================================
+      # === A) ASSEMBLE: Checkout code and set up environment ===
+      # ============================================================
       - name: A1) Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -91,7 +95,7 @@ jobs:
           STEPS_VER_OUTPUTS_PLAIN: ${{ steps.ver.outputs.plain }}
 
       # ============================================================
-      # B) RELEASE AND PUBLISH
+      # === B) CREATE RELEASE AND PUBLISH TO PYPI ===
       # ============================================================
 
       - name: B1) Create GitHub Release and upload artifacts
@@ -103,10 +107,14 @@ jobs:
           files: |
             dist/*.whl
             dist/*.tar.gz
+            dist/sbom.spdx.json
+            dist/sbom.cdx.json
+          fail_on_unmatched_files: true
           draft: false
           prerelease: false
           make_latest: true
 
       - name: B2) Publish to PyPI with Trusted Publishing
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
-        # OBS: Uploads dist/* by default; the downloaded artifact lands in dist/.
+        # OBS: pypa/gh-action-pypi-publish only uploads .whl and .tar.gz files
+        # from dist/ and safely ignores .json SBOM files.

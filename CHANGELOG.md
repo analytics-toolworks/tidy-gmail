@@ -11,54 +11,51 @@ and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0
 
 ## [Unreleased]
 
-### Added
+---
 
-- Automatic resumption of bounded Gmail scans across invocations.
-- Private SQLite checkpoints that commit metadata and cursor progress together.
-- Explicit scan restart with private archives of earlier results.
-- Partial/complete scan status and unavailable-message reports.
-- Query and account identity checks, bounded read retries, and invalid-token diagnostics.
-- Synthetic pagination, Ctrl+C, process-crash, deduplication, and large-inventory tests.
-
-### Changed
-
-- Scan inventory now accumulates unique records instead of replacing prior batches.
-- Reports can read committed scan metadata even after interrupted CSV export.
-- Sender discovery writes additions atomically while preserving existing decisions.
+## [0.2.0] - 2026-11-21
 
 ### Added
 
-- Optional permanent sender approvals in `data/senders_always_delete.csv`.
-- Approval source reporting and explicit keep/review conflict reports.
-- Synthetic coverage for large lists, age boundaries, and final safety checks.
+- Resume bounded Gmail scans across runs. Private SQLite checkpoints save
+  message metadata and scan progress together.
+- Start a fresh scan with `scan --restart` and retain the previous scan
+  in a private archive.
+- Report whether scan coverage is partial or complete and identify messages
+  whose metadata was unavailable.
+- Check the Gmail account and query when resuming a scan. Retry bounded
+  read operations and report invalid-token errors.
+- Support standing sender approvals in `data/senders_always_delete.csv`.
+  Reports identify the approval source and flag conflicting keep or review
+  decisions.
+- Protect receipts using decoded subject lines across Gmail categories.
+  Report receipts and invalid metadata separately in sender summaries.
+- Document CSV headers, troubleshooting for empty configuration files,
+  and the OAuth setup step after local validation.
+- Add offline tests for pagination, interrupted scans, deduplication,
+  large inventories and sender lists, age boundaries, workspace selection,
+  receipts, missing metadata, and final protection checks.
 
 ### Changed
 
-- Refresh Gmail search exclusions before every Trash request.
-- Apply configured dry-run to CLI restoration as well as cleanup.
+- Accumulate unique messages across scan batches. Reports can read committed
+  scan results even if CSV export was interrupted.
+- Save newly discovered senders atomically while preserving existing decisions.
+- Recheck Gmail search conditions and message metadata immediately before
+  moving each confirmed message to Trash.
+- Apply the configured dry-run setting to restoration as well as cleanup.
+- Report the saved candidate count and the Trash batch limit separately.
+- Keep published-user instructions in the README and source-checkout and
+  maintainer instructions in the development documentation.
 
 ### Fixed
 
-- Protected sender report labels now show protection reasons instead of
-  undecided or trash decisions, while preserving saved sender decisions.
-- Added synthetic regression coverage for workspace selection and protected
-  senders at candidate selection and the final pre-Trash check.
-
-### Changed
-
-- Separated published-user instructions in the README from source-checkout
-  and maintainer instructions in the development documentation.
-
-### Added
-
-- Permanent receipt protection with a default-enabled configuration setting.
-- Decoded Subject matching for transactional records across Gmail categories.
-- Receipt and invalid-metadata reports with separate sender summary counts.
-- Final per-message metadata protection checks after cleanup confirmation.
-- Offline tests for receipt formats, missing metadata, and changed candidates.
-
-- CSV header examples and troubleshooting for preserved empty configuration.
-- Explanation of successful local validation and the next OAuth setup step.
+- Apply the Trash batch limit after checking live eligibility. Repeated
+  `trash --execute` runs now skip messages already moved to Trash and
+  continue through the saved candidates until the batch is full or the
+  list is exhausted.
+- Show the protection reason for protected senders in reports while
+  preserving their saved decisions.
 
 ---
 
@@ -107,8 +104,18 @@ and this project adheres to **[Semantic Versioning](https://semver.org/spec/v2.0
   - **MAJOR** - breaking changes
   - **MINOR** - backward-compatible
   - **PATCH** - fixes, documentation, tooling
-- Versions are driven by git tags. Tag `vX.Y.Z` to release.
-- Docs are deployed per version tag and aliased to **latest**.
+- Versions are driven by git tags.
+- Push `vX.Y.Z` to start the release workflow.
+- Documentation deploys to GitHub Pages on pushes to `main`
+  and can also be deployed manually.
+- Each GitHub Release includes four attached assets:
+  - Python wheel (`.whl`)
+  - Source distribution (`.tar.gz`)
+  - SPDX SBOM (`sbom.spdx.json`)
+  - CycloneDX SBOM (`sbom.cdx.json`)
+- PyPI receives the wheel and source distribution through Trusted Publishing.
+  The publishing action generates and uploads a PEP 740 attestation for each
+  distribution file by default.
 
 ## Release Procedure (Required)
 
@@ -156,12 +163,10 @@ uvx twine check dist/*
 
 # update .github/workflows
 uvx gha-tools autoupdate --pin=all --write .github/workflows
+
 # check
-uvx zizmor@latest .github/ --fix  
+uvx zizmor@latest .github/ --fix
 # 1 informational or suppressed are still okay
-
-uvx
-
 ```
 
 ### Task 3. Commit, push, tag
@@ -182,13 +187,14 @@ git push origin vX.Y.Z
 ## Only As Needed (delete a tag)
 
 ```shell
-git tag -d vX.Z.Y
-git push origin :refs/tags/vX.Z.Y
+git tag -d vX.Y.Z
+git push origin :refs/tags/vX.Y.Z
 ```
 
 ## Links
 
-[Unreleased]: https://github.com/analytics-toolworks/tidy-gmail/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/analytics-toolworks/tidy-gmail/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/analytics-toolworks/tidy-gmail/releases/tag/v0.2.0
 [0.1.0]: https://github.com/analytics-toolworks/tidy-gmail/releases/tag/v0.1.0
 
 <!-- markdownlint-enable MD024 -->

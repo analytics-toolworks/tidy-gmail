@@ -1,7 +1,5 @@
 """Minimal Gmail API adapter; never retrieves message bodies."""
 
-from __future__ import annotations
-
 from collections.abc import Callable, Iterator
 from email.utils import parseaddr
 import hashlib

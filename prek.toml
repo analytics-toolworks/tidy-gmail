@@ -170,17 +170,17 @@ name = "C3) Check for filename case conflicts"
 # ============================================================
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.17.5"
-
-# === RUFF FORMAT PYTHON ===
-
-[[repos.hooks]]
-id = "ruff-format"
-name = "D1) Ruff format (before linting)"
+rev = "v0.17.6"
 
 # === RUFF LINT PYTHON (standard fixes) ===
 
 [[repos.hooks]]
-id = "ruff"
-name = "D2) Ruff linter (autofix errors, style issues )"
+id = "ruff-check"
+name = "D1) Ruff linter (autofix errors, style issues)"
 args = ["--fix", "--exit-non-zero-on-fix"]
+
+# === RUFF FORMAT PYTHON (after autofix) ===
+
+[[repos.hooks]]
+id = "ruff-format"
+name = "D2) Ruff format (after autofix)"

@@ -4,6 +4,22 @@ These instructions are for contributors working in a source checkout.
 The [README](https://github.com/analytics-toolworks/tidy-gmail/blob/main/README.md) describes the published user application.
 The [changelog](https://github.com/analytics-toolworks/tidy-gmail/blob/main/CHANGELOG.md) records changes and release procedures.
 
+## Development Tools
+
+The project uses:
+
+- Python with a `src/` package layout.
+- `uv` for dependency management.
+- `uvx` for the published command-line application.
+- Ruff for formatting and linting.
+- ty for static type checking.
+- pytest for automated tests.
+- Zensical for documentation.
+
+Tests must not access or modify a real Gmail account.
+Gmail operations should be tested through controlled
+fixtures and simulated API responses.
+
 ## Run the Current Source
 
 Use Python 3.15 and run commands from the repository root.

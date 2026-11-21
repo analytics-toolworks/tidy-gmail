@@ -1,7 +1,5 @@
 """Private transactional checkpoints for bounded-memory Gmail scanning."""
 
-from __future__ import annotations
-
 from collections.abc import Generator, Iterator
 from contextlib import contextmanager
 from copy import deepcopy

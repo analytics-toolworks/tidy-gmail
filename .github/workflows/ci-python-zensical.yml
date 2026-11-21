@@ -1,7 +1,7 @@
 # ============================================================
 # .github/workflows/ci-python-zensical.yml (ALL-PY-SRC-REPOS)
 # ============================================================
-# Updated: 2026-10-24
+# Updated: 2026-11-19
 #
 # WHAT: A GitHub Actions workflow that automatically checks project quality.
 #       GitHub Actions is GitHub's built-in project automation service.
@@ -49,7 +49,7 @@ permissions: # WHY: Least privilege; this job only needs repository read access.
 concurrency:
   group: ci-python-zensical-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-  # WHY: Cancel a running CI check when new code is pushed to the same branch.
+  # WHY: Cancel a running action when new code is pushed to the same branch.
 
 env:
   PYTHONUNBUFFERED: "1" # WHY: Display Python output immediately in CI logs.
@@ -63,7 +63,7 @@ jobs:
 
     steps:
       # ============================================================
-      # A) ASSEMBLE: Checkout code and set up environment
+      # === A) ASSEMBLE: Checkout code and set up environment ===
       # ============================================================
 
       - name: A1) Checkout repository code
@@ -73,7 +73,7 @@ jobs:
         # WHY: Required so all subsequent steps can access repo files.
 
       - name: A2) Install uv (with caching and uv.lock awareness)
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: true
           # WHY: Cache uv-managed artifacts for faster subsequent runs.
@@ -112,7 +112,7 @@ jobs:
         #      fix remaining issues by hand, then git add, commit, and push.
 
       # ============================================================
-      # B) BASELINE CHECKS: Tools not covered by hooks
+      # === B) BASELINE CHECKS: Tools not covered by hooks ===
       # ============================================================
       - name: B1) Validate pyproject.toml schema
         run: uvx "validate-pyproject[all]" pyproject.toml
@@ -126,8 +126,21 @@ jobs:
         # OBS: Not included in hooks because it requires the full environment.
         # OBS: continue-on-error keeps type checking non-blocking in this workflow.
 
+      - name: B3) Audit locked Python dependencies
+        id: dependency_audit
+        run: uv audit --frozen
+        continue-on-error: true
+        # WHY: Surface dependency advisories while allowing tests and docs to run.
+        # OBS: Reproduce locally with uv audit --frozen.
+
+      - name: B4) Flag an unsuccessful dependency audit
+        if: steps.dependency_audit.outcome == 'failure'
+        run: echo "::warning::Dependency audit found an issue or could not complete. See B3."
+        # WHY: Provide a clear warning in the workflow logs if the dependency audit fails.
+        # OBS: This does not fail the workflow; it only surfaces the issue for review.
+
       # ============================================================
-      # C) COVERAGE & TESTING: Python tests
+      # === C) COVERAGE & TESTING: Python tests ===
       # ============================================================
       - name: C1) Run pytest
         run: uv run python -m pytest
@@ -136,7 +149,7 @@ jobs:
         # OBS: Not included in hooks because tests can be slow.
 
       # ============================================================
-      # D) DOCS: Build documentation without deployment
+      # === D) DOCS: Build documentation without deployment ===
       # ============================================================
       - name: D1) Build documentation with Zensical
         run: |

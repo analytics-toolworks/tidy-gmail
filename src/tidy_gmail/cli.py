@@ -9,8 +9,6 @@ uvx tidy-gmail trash
 uvx tidy-gmail restore
 """
 
-from __future__ import annotations
-
 import argparse
 from pathlib import Path
 import sqlite3
